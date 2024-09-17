@@ -2,6 +2,7 @@ import os
 import time
 import google.generativeai as genai # type: ignore
 from google.generativeai.types import HarmCategory, HarmBlockThreshold # type: ignore
+import mimetypes
 
 genai.configure(api_key="AIzaSyDstXHSVIdNxNmoPZfb-ToufV1Nv8fmzyI")
 
@@ -35,12 +36,14 @@ class GenFileDataExtractionService:
         print("Gen AI Model Chat Session initialized.")
 
     # Start a chat session with the model
-    def igniteChatSession(self):
+    def initChatSession(self):
         print("Starting Fine Tuning...")
 
         # Fine Tune the model
+        local_file_path = os.path.join(os.getcwd(), "verification_service", "model_test_files", "manirabona_patience_ID.pdf")
+        
         files = [
-            self.uploadToGemini("/content/drive/MyDrive/ID/Scan9.pdf", mime_type="application/pdf"),
+            self.uploadToGemini(local_file_path, mime_type="application/pdf"),
         ]
 
         # Some files have a processing delay. Wait for them to be ready.
@@ -75,7 +78,7 @@ class GenFileDataExtractionService:
         return "You are tasked with extracting key information from the following document. Please provide:\n1. Full names\n2. Date of birth\n3. Address\n4. for the personal identification document and Please provide:\n1. Date of issuance\n2. company code\n3. company name\n4. registration date\n5. owner details. Any associated identification numbers (e.g., national ID, passport number, TIN number, etc.)\n5. Face image details (if any are found)\n\nAfter extracting this information, Json key must be lowercase and no space between words, just add underscore, if any missing column as specified, leave it nullable, if there is any metadata, add them in 'metadata' key, if there is a face image, verify if it matches with a provided reference image using the face matching technique, and don't forget document type, if it is personal ID, Company registration, ETC.\n\nSteps:\n- First, extract all structured and unstructured data as outlined and put them in json.\n- Then, describe any face images found in the document and read the image details, if contain texts.\n- Verify the identity by describing the process and matching the facial data to a reference image if provided."
 
     # Upload a file to Gemini
-    def uploadToGemini(path, mime_type=None):
+    def uploadToGemini(self, path, mime_type=None):
         """Uploads the given file to Gemini.
 
         See https://ai.google.dev/gemini-api/docs/prompting_with_media
@@ -85,7 +88,7 @@ class GenFileDataExtractionService:
         return file
 
     # Wait for files to be active
-    def waitForFilesActive(files):
+    def waitForFilesActive(self, files):
         """Waits for the given files to be active.
 
         Some files uploaded to the Gemini API need to be processed before they can be
@@ -111,9 +114,15 @@ class GenFileDataExtractionService:
 
     # Extract data from the uploaded file
     def extractData(self, uploaded_file):
+        # Determine the MIME type of the file
+        mime_type, _ = mimetypes.guess_type(uploaded_file)
+        
+        if mime_type is None:
+            mime_type = 'application/octet-stream'  # Default MIME type if unknown
+
         # Upload the file to Gemini
         self.file = uploaded_file
-        file = self.uploadToGemini(self.file, mime_type=self.file.mime_type)
+        file = self.uploadToGemini(self.file, mime_type=mime_type)
 
         # Some files have a processing delay. Wait for them to be ready.
         self.waitForFilesActive([ file ])
@@ -131,3 +140,5 @@ class GenFileDataExtractionService:
         # Send a message to the chat session to continue processing
         chat_response = model_session.send_message("Please extract all relevant details from this new document and verify the identity if applicable.")
         return chat_response.text
+    
+DataExtractionService = GenFileDataExtractionService()

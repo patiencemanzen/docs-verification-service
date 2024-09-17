@@ -6,5 +6,5 @@ class VerificationServiceConfig(AppConfig):
     name = "verification_service"
 
     def ready(self):
-        from .services import GenFileDataExtractionService
-        GenFileDataExtractionService()
+        from .services import DataExtractionService
+        DataExtractionService.initChatSession()
