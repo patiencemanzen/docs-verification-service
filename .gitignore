@@ -1,0 +1,36 @@
+# Python-related
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Environment variables
+.env
+
+# Django-specific
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+media/
+staticfiles/
+
+# Virtual environment
+venv/
+env/
+
+# PyCharm and other IDEs
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db
