@@ -12,13 +12,18 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import environ
+import os
 
-env = environ.Env()
-environ.Env.read_env()
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False),
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Take environment variables from .env file
+environ.Env.read_env(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -30,7 +35,8 @@ SECRET_KEY = "django-insecure-j)9wey*h=04*jwix=ll15hn($88unld!f-=bzv_*q&40gz=v5w
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -43,9 +49,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "verification_service",
     "rest_framework",
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -53,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = "gemini_verification_service.urls"
@@ -81,12 +90,12 @@ WSGI_APPLICATION = "gemini_verification_service.wsgi.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+        'ENGINE': 'djongo',
+        'NAME': 'murugo-verification',
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': env('MONGODB_HOST'),
+        }  
     }
 }
 
@@ -127,6 +136,14 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# This production code might break development mode, so we check whether we're in DEBUG mode
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -146,5 +163,5 @@ CELERY_RESULT_SERIALIZER = env('CELERY_RESULT_SERIALIZER')
 CELERY_ACCEPT_CONTENT = env.list('CELERY_ACCEPT_CONTENT')
 
 # Redis result expiry time (TTL)
-CELERY_RESULT_EXPIRES = env.int('CELERY_RESULT_EXPIRES')
+CELERY_RESULT_EXPIRES = env('CELERY_RESULT_EXPIRES')
 

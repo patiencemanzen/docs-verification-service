@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import UploadedFile
+from .models import UploadedFile, UserProfile
 from django.conf import settings # type: ignore
 
 class UploadedFileSerializer(serializers.ModelSerializer):
@@ -7,7 +7,15 @@ class UploadedFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UploadedFile
-        fields = ['id', 'file_url', 'file', 'uploaded_at', 'extracted_data']
+
+        fields = [
+            'id', 
+            'file', 
+            'file_url',
+            'image_file', 
+            'extracted_data',
+            'uploaded_at', 
+        ]
 
     def get_file_url(self, obj):
         request = self.context.get('request')
@@ -24,11 +32,9 @@ class UploadedFileSerializer(serializers.ModelSerializer):
         existing_file = UploadedFile.objects.filter(file_hash=file_hash).first()
         
         if existing_file:
-            # Log or print details for debugging
             print(f"Found existing file: {existing_file.id}")
             return existing_file
         else:
-            # Log or print details for debugging
             print("Creating new file entry.")
             return super().create(validated_data)
 
