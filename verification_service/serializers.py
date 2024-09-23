@@ -32,9 +32,7 @@ class UploadedFileSerializer(serializers.ModelSerializer):
         existing_file = UploadedFile.objects.filter(file_hash=file_hash).first()
         
         if existing_file:
-            print(f"Found existing file: {existing_file.id}")
             return existing_file
         else:
-            print("Creating new file entry.")
             return super().create(validated_data)
 
