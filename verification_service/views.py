@@ -79,7 +79,7 @@ class FileUploadView(APIView):
                         response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=4)
                     else:
                         # Extract data from the uploaded file
-                        extracted_data = DataExtractionService.extractData(existing_file.file.path)
+                        extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
 
                         # Log the extracted data for debugging
                         logging.debug(f"Extracted data (raw): {extracted_data}")
@@ -115,7 +115,7 @@ class FileUploadView(APIView):
                             print(f"Extracting data from file: {uploaded_file}")
 
                             # Extract data from the uploaded file
-                            extracted_data = DataExtractionService.extractData(uploaded_file.file.path)
+                            extracted_data = DataExtractionService.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
 
                             # Log the extracted data for debugging
                             logging.debug(f"Extracted data (raw): {extracted_data}")
