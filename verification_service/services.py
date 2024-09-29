@@ -81,12 +81,12 @@ class GenFileDataExtractionService:
         return (
             f"You are tasked with extracting key information from the following document. "
             f"Please provide:{personal_key_information}. \n"
-            f"For the personal identification document, Please provide:{company_key_information}. "
+            f"For the personal identification document, Please provide: {company_key_information}. "
             f"After extracting this information, please use JSON, and JSON key must be lowercase and no space between words, just add an underscore, if any missing column as specified above, add the key but leave it nullable, if there is any metadata, add it in the 'metadata' key. "
-            f"And here is the submitted data as follows:{submitted_data} "
-            f"Please validate this data and check if it matches with what is provided in the document, and add the key 'valid' as true or false in JSON to determine if the document and submitted data are real or valid and if this key is mandatory.\\n"
+            f"And here is the submitted data as follows: {submitted_data}"
+            f"Please validate this data and check if it matches with what is provided in the document, please make sure each key is object of submited data and document data regard the key value record and it must contain key submitted, key document data and key is match true or false key, add the key 'valid' as true or false in JSON to determine if the document and submitted data are real or valid and if this key is mandatory.\\n"
             f"If there is a face image provided, verify if it matches with a provided reference image using the face matching technique, after matching, add the key in JSON as 'face_matches' to be true or false, and don't forget the document type, if it is personal ID, Company registration, ETC. \\n\\n"
-            f"Steps:\\n- First, extract all structured and unstructured data as outlined and put them in JSON. \\n\\n"
+            f"Steps:\\n- First, extract all structured and unstructured data as outlined and put them in JSON where each extracted data should be matched with submitted data. \\n\\n"
             f"then, check if the submitted data matches with document details and highlight the mismatched. \\n- Then, describe any face images found in the document and read the image details then compare to the provided image file if match with details on the image or are related, if contain text.\\n"
             f"- Verify the identity by describing the process and matching the facial data to a reference image if provided."
         )
