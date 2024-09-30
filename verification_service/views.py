@@ -76,7 +76,7 @@ class FileUploadView(APIView):
                     if existing_file.extracted_data:
                         # Format the response to include extracted data in real JSON format
                         response_data = serializer.data
-                        response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=4)
+                        response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=6)
                     else:
                         # Extract data from the uploaded file
                         extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
@@ -95,7 +95,7 @@ class FileUploadView(APIView):
 
                         # Format the response to include extracted data in real JSON format
                         response_data = serializer.data
-                        response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=4)
+                        response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=6)
                         
                     return Response(response_data, status=status.HTTP_200_OK)
                 
