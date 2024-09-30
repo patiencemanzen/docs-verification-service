@@ -9,13 +9,13 @@ DEFAULT_USER_ID = 1
 def upload_id_file(instance, filename):
     extension = filename.split('.')[-1]
     new_filename = f"murugo_file_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
-    return os.path.join('uploaed_ID_files/', new_filename)
+    return os.path.join('upload_ID_files/', new_filename)
 
 # Function to upload the uploaded image file
 def upload_image_file(instance, filename):
     extension = filename.split('.')[-1]
     new_filename = f"murugo_image_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
-    return os.path.join('uploaed_image_files/', new_filename)
+    return os.path.join('uploaded_image_files/', new_filename)
 
 class UserProfile(models.Model):
     murugo_user_id = models.CharField(max_length=100)
