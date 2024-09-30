@@ -1,14 +1,14 @@
-# Gemini Murugo Verification Service
+# Docs Verification Service
 
 ## Overview
 
-The Gemini Verification Service is a Django-based application designed to handle file uploads and data extraction. The service includes an API endpoint for uploading files and a data extraction service that runs upon application initialization.
+The Docs Verification Service is a Django-based application designed to handle file uploads and data extraction. The service includes an API endpoint for uploading files and a data extraction service using Gemini AI Api that runs upon application initialization.
 
 ## Features
 
 - File upload API
 - Data extraction service
-- Integration with Google Generative AI
+- Integration with Gemini Generative AI
 
 ## Requirements
 
