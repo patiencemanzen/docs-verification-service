@@ -2,8 +2,11 @@ import os
 import time
 import google.generativeai as genai # type: ignore
 from google.generativeai.types import HarmCategory, HarmBlockThreshold # type: ignore
+from googleapiclient.errors import HttpError
 import mimetypes
+import logging
 
+logger = logging.getLogger(__name__)
 genai.configure(api_key="AIzaSyDstXHSVIdNxNmoPZfb-ToufV1Nv8fmzyI")
 
 class GenFileDataExtractionService:
@@ -97,9 +100,23 @@ class GenFileDataExtractionService:
 
         See https://ai.google.dev/gemini-api/docs/prompting_with_media
         """
-        file = genai.upload_file(path, mime_type=mime_type)
-        print(f"Uploaded file '{file.display_name}' as: {file.uri}")
-        return file
+        max_retries = 2
+        backoff_factor = 2
+
+        for attempt in range(max_retries):
+            try:
+                file = genai.upload_file(path, mime_type=mime_type)
+                print(f"Uploaded file '{file.display_name}' as: {file.uri}")
+                return file
+            except HttpError as e:
+                if e.resp.status == 503:
+                    wait_time = backoff_factor ** attempt
+                    logger.warning(f"Service unavailable. Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"Failed to upload file: {e}")
+                    raise
+        raise Exception("Max retries exceeded. Failed to upload file.")
 
     # Wait for files to be active
     def waitForFilesActive(self, files):
