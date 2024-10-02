@@ -8,7 +8,12 @@ from .forms import UploadForm
 from django.middleware.csrf import get_token
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
+
+from googleapiclient.errors import HttpError
+from google.api_core.exceptions import InternalServerError
+
 import json
+import time
 import logging  
 import traceback
 
@@ -78,24 +83,38 @@ class FileUploadView(APIView):
                         response_data = serializer.data
                         response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=6)
                     else:
-                        # Extract data from the uploaded file
-                        extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
+                        max_retries = 2
+                        backoff_factor = 2
 
-                        # Log the extracted data for debugging
-                        logging.debug(f"Extracted data (raw): {extracted_data}")
+                        for attempt in range(max_retries):
+                            try:
+                                # Extract data from the uploaded file
+                                extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
 
-                        # Clean up the extracted data by removing unwanted characters
-                        cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
+                                # Log the extracted data for debugging
+                                logging.debug(f"Extracted data (raw): {extracted_data}")
 
-                        logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
+                                # Clean up the extracted data by removing unwanted characters
+                                cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
 
-                        # Store extracted data in the database with the file record
-                        existing_file.extracted_data = cleaned_data_str
-                        existing_file.save()
+                                logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
 
-                        # Format the response to include extracted data in real JSON format
-                        response_data = serializer.data
-                        response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=6)
+                                # Store extracted data in the database with the file record
+                                existing_file.extracted_data = cleaned_data_str
+                                existing_file.save()
+
+                                # Format the response to include extracted data in real JSON format
+                                response_data = serializer.data
+                                response_data['extracted_data'] = json.dumps(json.loads(existing_file.extracted_data), indent=6)
+                            except HttpError as e:
+                                if e.resp.status == 503:
+                                    wait_time = backoff_factor ** attempt
+                                    logger.warning(f"Service unavailable. Retrying in {wait_time} seconds...")
+                                    time.sleep(wait_time)
+                                else:
+                                    logger.error(f"Failed to upload file: {e}")
+                                    raise
+                        raise Exception("Max retries exceeded. Failed to upload file.")
                         
                     return Response(response_data, status=status.HTTP_200_OK)
                 
@@ -114,20 +133,34 @@ class FileUploadView(APIView):
                         if not uploaded_file.extracted_data:
                             print(f"Extracting data from file: {uploaded_file}")
 
-                            # Extract data from the uploaded file
-                            extracted_data = DataExtractionService.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
+                            max_retries = 2
+                            backoff_factor = 2
 
-                            # Log the extracted data for debugging
-                            logging.debug(f"Extracted data (raw): {extracted_data}")
+                            for attempt in range(max_retries):
+                                try:
+                                    # Extract data from the uploaded file
+                                    extracted_data = DataExtractionService.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
 
-                            # Clean up the extracted data by removing unwanted characters
-                            cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
+                                    # Log the extracted data for debugging
+                                    logging.debug(f"Extracted data (raw): {extracted_data}")
 
-                            logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
+                                    # Clean up the extracted data by removing unwanted characters
+                                    cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
 
-                            # Store extracted data in the database with the file record
-                            uploaded_file.extracted_data = cleaned_data_str
-                            uploaded_file.save()
+                                    logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
+
+                                    # Store extracted data in the database with the file record
+                                    uploaded_file.extracted_data = cleaned_data_str
+                                    uploaded_file.save()
+                                except HttpError as e:
+                                    if e.resp.status == 503:
+                                        wait_time = backoff_factor ** attempt
+                                        logger.warning(f"Service unavailable. Retrying in {wait_time} seconds...")
+                                        time.sleep(wait_time)
+                                    else:
+                                        logger.error(f"Failed to upload file: {e}")
+                                        raise
+                            raise Exception("Max retries exceeded. Failed to upload file.")
                         else:
                             # File already processed
                             extracted_data = uploaded_file.extracted_data
