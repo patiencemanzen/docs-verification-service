@@ -196,7 +196,7 @@ Here is an example of how to create a Service class for handling communication w
          * DataExtractionService constructor
          */
         public function __construct() {
-            $this->dataExtractionServiceUrl =  "http://127.0.0.1:8000/api";
+            $this->dataExtractionServiceUrl =  "https://gemini-verification-service.onrender.com/api";
             $this->getCRFToken();
         }
 
