@@ -49,7 +49,7 @@ class GenFileDataExtractionService:
                 {
                     "role": "user",
                     "parts": [
-                        "You are tasked with extracting key information from the following text:\n\n\"r e p u b u l k u r w n uruhushya rwagateganyo rwo gutwara ibinyabiziga amazina dusingiza rukundo clemence aho yavukiye gasabo indangamuntu 1200070141812073 itariki yavukiyeho 03122000 igitsina gore nimero yuruhushya nyg2006230901090054p igihe rutangiwe 29052024 rutanzwe na polisi yu rwanda kugeza 29052025 icyitonderwa uru ruhushya mu buryo bwikoranabuhanga rwemejwe na polisi yu rwanda kugira ngo wirinde uburiganya reba ko uru ruhushya rufite umwimerere shyiramo nomero ya dosiye b240529123053lqg6 kuri irembogov mbere yo kurukoresha kode ya qr yemezwa na polisi yu rwanda bishyizweho umukono koranabuhanga na komiseri ushinzwe ishami ryibizamini nimpushya zo gutwara ibinyabiziga inyandiko yatangiwe ku\"\n\nPlease extract and provide at least the following information:\n\nFull names\n\nDate of birth\n\nAddress\n\nFormat the extracted information in JSON. Use lowercase keys with underscores instead of spaces. If any specified fields are missing, indicate them as nullable. Include any relevant metadata under the metadata key.\n\nHere is the submitted data:\n\nfirstname: Manirabona\n\nsecondname: Patience\n\nemail: hseal419@gmail.com\n\npersonal_id:\n\naddress: kigali, rwanda\n\ncity: kigali\n\ndob: 28/04/2002\n\ncountry_code: +250\n\ncountry: rwanda\n\nphone_number: 0780289432\n\nValidate the submitted data against the extracted data. Include the following keys in the JSON output:\n\nsubmitted (indicating if the submitted data matches)\n\ndocument (indicating if the extracted document data is correct)\n\nis_match (true or false)\n\nvalid (true or false, indicating if the document and submitted data are authentic)\n\nface_matches (true or false, indicating if a face image is provided and matches the reference image)\n\ndocument_type (e.g., personal ID, company registration, etc.)\n\nProcessing Steps:\n\nExtract all structured and unstructured data, formatting them in JSON to ensure each extracted data matches the submitted data.\n\nCheck for mismatches between the submitted data and document details, noting any discrepancies.\n\nDescribe any face images found in the document, including details, and compare them to the provided image file.\n\nOutline the process of verifying identity using facial data if an image is provided.",
+                        "You are tasked with extracting key information from the following text:\n\n\"r e p u b u l k u r w n uruhushya rwagateganyo rwo gutwara ibinyabiziga amazina dusingiza rukundo clemence aho yavukiye gasabo indangamuntu 1200070141812073 itariki yavukiyeho 03122000 igitsina gore nimero yuruhushya nyg2006230901090054p igihe rutangiwe 29052024 rutanzwe na polisi yu rwanda kugeza 29052025 icyitonderwa uru ruhushya mu buryo bwikoranabuhanga rwemejwe na polisi yu rwanda kugira ngo wirinde uburiganya reba ko uru ruhushya rufite umwimerere shyiramo nomero ya dosiye b240529123053lqg6 kuri irembogov mbere yo kurukoresha kode ya qr yemezwa na polisi yu rwanda bishyizweho umukono koranabuhanga na komiseri ushinzwe ishami ryibizamini nimpushya zo gutwara ibinyabiziga inyandiko yatangiwe ku\"\n\nPlease extract and provide at least the following information:\n\nFull names\n\nDate of birth\n\nAddress\n\nFormat the extracted information in JSON. Use lowercase keys with underscores instead of spaces. If any specified fields are missing, indicate them as nullable. Include any relevant metadata under the metadata key.\n\nHere is the submitted data:\n\nfirstname: Manirabona\n\nsecondname: Patience\n\nemail: hseal419@gmail.com\n\npersonal_id:\n\naddress: kigali, rwanda\n\ncity: kigali\n\ndob: 28/04/2002\n\ncountry_code: +250\n\ncountry: rwanda\n\nphone_number: 0780289432\n\nValidate the submitted data against the extracted data. Include the following keys in the JSON output:\n\nsubmitted (indicating if the submitted data matches)\n\ndocument (indicating if the extracted data from text provided is correct)\n\nis_match (true or false)\n\nvalid (true or false, indicating if the provided text and submitted data are authentic)\n\nface_matches (true or false, indicating if a face image is provided and matches the reference image)\n\ndocument_type (e.g., personal ID, company registration, etc.)\n\nProcessing Steps:\n\nExtract all structured and unstructured data, formatting them in JSON to ensure each extracted data matches the submitted data.\n\nCheck for mismatches between the submitted data and provided text details, noting any discrepancies.\n\n",
                     ],
                 },
                 {
@@ -95,9 +95,9 @@ class GenFileDataExtractionService:
         """
 
         return (
-            f"You are tasked with extracting key information from the following text: {extracted_data}\n"
+            f"You are tasked with extracting key information from the following text that have been extracted from document: {extracted_data}\n"
             f"Please extract and provide at least the following information: {personal_key_information}.\n"
-            f"For the personal identification document, please provide: {company_key_information}.\n\n"
+            f"For the personal identification, please provide: {company_key_information}.\n\n"
             "Format the extracted information in JSON. Use lowercase keys with underscores instead of spaces. "
             "If any specified fields are missing, indicate them as nullable. Include any relevant metadata under the 'metadata' key.\n\n"
             f"Here is the submitted data: {submitted_data}\n\n"
@@ -106,15 +106,13 @@ class GenFileDataExtractionService:
             "- 'submitted': indicating if the submitted data matches.\n"
             "- 'document': indicating if the extracted document data is correct.\n"
             "- 'is_match': true or false.\n"
-            "- 'valid': true or false, indicating if the document and submitted data are authentic.\n"
+            "- 'valid': true or false, indicating if the provided text and submitted data are authentic.\n"
             "- 'face_matches': true or false, indicating if a face image is provided and matches the reference image.\n"
             "- 'document_type': (e.g., personal ID, company registration, etc.)\n\n"
 
             "Processing Steps:\n"
             "- Extract all structured and unstructured data, formatting them in JSON to ensure each extracted data matches the submitted data.\n"
-            "- Check for mismatches between the submitted data and document details, noting any discrepancies.\n"
-            "- Describe any face images found in the document, including details, and compare them to the provided image file.\n"
-            "- Outline the process of verifying identity using facial data if an image is provided."
+            "- Check for mismatches between the submitted data and provided text details, noting any discrepancies.\n"
         )
 
     # Extract data from the uploaded file
@@ -145,7 +143,7 @@ class GenFileDataExtractionService:
         )
 
         # Send a message to the chat session to continue processing
-        chat_response = model_session.send_message("Please extract all relevant details from this new document, validate the submitted data and verify the identity if applicable.")
+        chat_response = model_session.send_message("Please extract all relevant details from this, validate the submitted data and verify the records if applicable.")
         return chat_response.text
 
     def extract_text_from_files(self, file_paths):
