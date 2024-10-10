@@ -78,36 +78,31 @@ class FileUploadView(APIView):
                 if existing_file:
                     serializer = UploadedFileSerializer(existing_file, context={'request': request})
 
-                    if existing_file.extracted_data:
+                    try:
+                        # Extract data from the uploaded file
+                        extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
+
+                        # Log the extracted data for debugging
+                        logging.debug(f"Extracted data (raw): {extracted_data}")
+
+                        # Clean up the extracted data by removing unwanted characters
+                        cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
+
+                        logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
+
+                        # Store extracted data in the database with the file record
+                        existing_file.extracted_data = cleaned_data_str
+                        existing_file.save()
+
                         # Format the response to include extracted data in real JSON format
                         response_data = serializer.data
                         response_data['extracted_data'] = existing_file.extracted_data
-                    else:
-                        try:
-                            # Extract data from the uploaded file
-                            extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
-
-                            # Log the extracted data for debugging
-                            logging.debug(f"Extracted data (raw): {extracted_data}")
-
-                            # Clean up the extracted data by removing unwanted characters
-                            cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
-
-                            logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
-
-                            # Store extracted data in the database with the file record
-                            existing_file.extracted_data = cleaned_data_str
-                            existing_file.save()
-
-                            # Format the response to include extracted data in real JSON format
-                            response_data = serializer.data
-                            response_data['extracted_data'] = existing_file.extracted_data
-                        except HttpError as e:
-                            if e.resp.status == 503:
-                                logger.warning(f"Service unavailable.")
-                            else:
-                                logger.error(f"Failed to upload file: {e}")
-                                raise
+                    except HttpError as e:
+                        if e.resp.status == 503:
+                            logger.warning(f"Service unavailable.")
+                        else:
+                            logger.error(f"Failed to upload file: {e}")
+                            raise
                         
                     return Response(response_data, status=status.HTTP_200_OK)
                 
