@@ -12,8 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 from googleapiclient.errors import HttpError
 from google.api_core.exceptions import InternalServerError
 
-import json
-import time
 import logging  
 import traceback
 
