@@ -10,7 +10,7 @@ class UploadForm(forms.Form):
     personalid = forms.CharField(max_length=100, required=True)
     address = forms.CharField(max_length=255, required=True)
     city = forms.CharField(max_length=100, required=True)
-    dob = forms.DateField(required=True)
+    dob = forms.CharField(required=True)
     countryCode = forms.CharField(max_length=10, required=True)
     country = forms.CharField(max_length=100, required=True)
     phoneNumber = forms.CharField(max_length=15, required=True)
