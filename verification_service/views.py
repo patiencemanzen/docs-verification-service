@@ -1,7 +1,7 @@
 from rest_framework import status # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework.views import APIView # type: ignore
-from .models import UploadedFile, UserProfile
+from .models import UploadedFile
 from .serializers import UploadedFileSerializer
 from .services import DataExtractionService
 from .forms import UploadForm
@@ -12,9 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from googleapiclient.errors import HttpError
 from google.api_core.exceptions import InternalServerError
 
-import json
-import time
-import logging  
+import logging
 import traceback
 
 logger = logging.getLogger(__name__)
@@ -40,33 +38,6 @@ class FileUploadView(APIView):
                 
                 if not image:
                     return Response({"message": "No image uploaded", "message": "Pls Attach your Image"}, status=status.HTTP_400_BAD_REQUEST)
-                
-                murugo_user_id = form.cleaned_data['murugo_user_id']
-                
-                try:
-                    user_profile_exists = UserProfile.objects.filter(murugo_user_id=murugo_user_id).first()
-                except Exception as e:
-                    logger.error(f"Error checking if user profile exists: {e}")
-                    logger.error(traceback.format_exc())
-                    return Response({"message": "An error occurred while checking user profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
-                if not user_profile_exists:
-                    UserProfile.objects.create(
-                        murugo_user_id=form.cleaned_data['murugo_user_id'],
-                        firstname=form.cleaned_data['firstname'],
-                        secondname=form.cleaned_data['secondname'],
-                        email=form.cleaned_data['email'],
-                        personalid=form.cleaned_data['personalid'],
-                        address=form.cleaned_data['address'],
-                        city=form.cleaned_data['city'],
-                        dob=form.cleaned_data['dob'],
-                        countryCode=form.cleaned_data['countryCode'],
-                        country=form.cleaned_data['country'],
-                        phoneNumber=form.cleaned_data['phoneNumber'],
-                        id_type=form.cleaned_data['id_type']
-                    )
-                
-                user_profile = UserProfile.objects.filter(murugo_user_id=murugo_user_id).first()
 
                 # Calculate file hash to check for duplicates
                 temp_file = UploadedFile(file=file)
@@ -111,7 +82,7 @@ class FileUploadView(APIView):
                 
                 if file_serializer.is_valid():
                     # Save the uploaded file to the database
-                    uploaded_file = file_serializer.save(user=user_profile)
+                    uploaded_file = file_serializer.save()
 
                     # Ensure the file is saved
                     uploaded_file.refresh_from_db()
@@ -124,8 +95,6 @@ class FileUploadView(APIView):
                             try:
                                 # Extract data from the uploaded file
                                 extracted_data = DataExtractionService.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
-
-                                print(extracted_data)
 
                                 # Log the extracted data for debugging
                                 logging.debug(f"Extracted data (raw): {extracted_data}")

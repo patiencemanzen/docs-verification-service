@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import UploadedFile, UserProfile
+from .models import UploadedFile
 from django.conf import settings # type: ignore
 
 class UploadedFileSerializer(serializers.ModelSerializer):
