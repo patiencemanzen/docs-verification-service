@@ -7,8 +7,11 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold # type: i
 from googleapiclient.errors import HttpError
 from PIL import Image
 from docx import Document
+import requests
 
 logger = logging.getLogger(__name__)
+# defaultCallbackURL = "http://127.0.0.1:8000/api/v2/user/verification/callback"
+defaultCallbackURL = "https://test.murugocloud.com/api/v2/user/verification/callback"
 genai.configure(api_key="AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw")
 
 class GenFileDataExtractionService:
@@ -210,5 +213,64 @@ class GenFileDataExtractionService:
             f"\\n9. Country: {data['country']} "
             f"\\n10. phoneNumber: {data['phoneNumber']}\\n"
         )
+    
+    def handleFileDataExtraction(self, uploaded_file, submitted_data):
+        try:
+            # Extract data from the uploaded file
+            extracted_data = self.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data=submitted_data)
+
+            # Log the extracted data for debugging
+            logging.debug(f"Extracted data (raw): {extracted_data}")
+
+            # Clean up the extracted data by removing unwanted characters
+            cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
+
+            logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
+
+            # Store extracted data in the database with the file record
+            uploaded_file.extracted_data = cleaned_data_str
+            uploaded_file.save()
+
+            return uploaded_file.extracted_data
+        except HttpError as e:
+            if e.resp.status == 503:
+                logger.warning(f"Service unavailable.")
+            else:
+                logger.error(f"Failed to upload file: {e}")
+                raise
+
+    def send_callback_to_custom_api(self, murugo_user_id, extracted_data): 
+        # Convert extracted_data to a list if it's a set
+        if isinstance(extracted_data, set):
+            extracted_data = list(extracted_data)
+        
+        payload = {
+            "murugo_user_id": murugo_user_id,
+            "extracted_data": extracted_data
+        }
+        
+        try:
+            response = requests.post(defaultCallbackURL, json=payload, headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+
+            response.raise_for_status()
+            
+            # Check if the response is empty
+            if response.text.strip() == "":
+                logger.error("Received empty response from the server")
+                return {"error": "Received empty response from the server"}
+            
+            try:
+                response_data = response.text
+                logger.info(f"Successfully sent callback with data: {response_data}")
+                return response_data
+            except ValueError as e:
+                logger.error(f"Failed to parse JSON response: {e}")
+                return {"error": f"Failed to parse JSON response: {e}"}
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to send callback with data Error: {e}")
+            return {"error": f"Failed to send callback with data Error: {e}"}
 
 DataExtractionService = GenFileDataExtractionService()

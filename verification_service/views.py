@@ -12,10 +12,19 @@ from django.views.decorators.csrf import csrf_exempt
 from googleapiclient.errors import HttpError
 from google.api_core.exceptions import InternalServerError
 
+from .tasks import extract_data_task
+import redis
+from rq import Queue
+
 import logging
 import traceback
 
+from rq import Retry
+from datetime import timedelta
+
 logger = logging.getLogger(__name__)
+redis_conn = redis.Redis()
+q = Queue(connection=redis_conn)
 
 @api_view(['GET'])
 @csrf_exempt
@@ -48,34 +57,10 @@ class FileUploadView(APIView):
                 
                 if existing_file:
                     serializer = UploadedFileSerializer(existing_file, context={'request': request})
-
-                    try:
-                        # Extract data from the uploaded file
-                        extracted_data = DataExtractionService.extractData(uploaded_file=existing_file.file.path, uploaded_image=existing_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
-
-                        # Log the extracted data for debugging
-                        logging.debug(f"Extracted data (raw): {extracted_data}")
-
-                        # Clean up the extracted data by removing unwanted characters
-                        cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
-
-                        logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
-
-                        # Store extracted data in the database with the file record
-                        existing_file.extracted_data = cleaned_data_str
-                        existing_file.save()
-
-                        # Format the response to include extracted data in real JSON format
-                        response_data = serializer.data
-                        response_data['extracted_data'] = existing_file.extracted_data
-                    except HttpError as e:
-                        if e.resp.status == 503:
-                            logger.warning(f"Service unavailable.")
-                        else:
-                            logger.error(f"Failed to upload file: {e}")
-                            raise
+                    
+                    extract_data_task.delay(existing_file.id, {'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']}, murugo_user_id=form.cleaned_data['murugo_user_id'])
                         
-                    return Response(response_data, status=status.HTTP_200_OK)
+                    return Response({ "message": "Data processing started"}, status=status.HTTP_200_OK)
                 
                 # File does not exist, proceed to save the new file
                 file_serializer = UploadedFileSerializer(data=request.data, context={'request': request})
@@ -89,42 +74,22 @@ class FileUploadView(APIView):
 
                     # Ensure file is available and handle extraction
                     if uploaded_file.file:
-                        if not uploaded_file.extracted_data:
+                        if not uploaded_file.extracted_data or uploaded_file.extracted_data.strip() == "":
                             print(f"Extracting data from file: {uploaded_file}")
 
                             try:
-                                # Extract data from the uploaded file
-                                extracted_data = DataExtractionService.extractData(uploaded_file=uploaded_file.file.path, uploaded_image=uploaded_file.image_file.path, submitted_data={'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']})
-
-                                # Log the extracted data for debugging
-                                logging.debug(f"Extracted data (raw): {extracted_data}")
-
-                                # Clean up the extracted data by removing unwanted characters
-                                cleaned_data_str = extracted_data.strip().replace("```json\n", "").replace("```", "")
-
-                                logging.debug(f"Cleaned extracted data: {cleaned_data_str}")
-
-                                # Store extracted data in the database with the file record
-                                uploaded_file.extracted_data = cleaned_data_str
-                                uploaded_file.save()
-                            except HttpError as e:
-                                if e.resp.status == 503:
-                                    logger.warning(f"Service unavailable.")
-                                else:
-                                    logger.error(f"Failed to upload file: {e}")
-                                    raise
+                                # Queue the data extraction task
+                                extract_data_task.delay(uploaded_file.id, {'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']}, murugo_user_id=form.cleaned_data['murugo_user_id'])
+                                return Response({"message": "File & Identity Created successfully"}, status=status.HTTP_201_CREATED)
+                            except Exception as e:
+                                return Response({"message": "Error during data extraction"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                         else:
                             # File already processed
                             extracted_data = uploaded_file.extracted_data
+                            DataExtractionService.send_callback_to_custom_api(extracted_data)
+                            return Response({"message": "File & Identity Created successfully"}, status=status.HTTP_201_CREATED)
                     else:
                         return Response({"message": "File not found"}, status=status.HTTP_400_BAD_REQUEST)
-
-                    # Format the response to include extracted data in real JSON format
-                    response_data = file_serializer.data
-                    response_data['extracted_data'] = uploaded_file.extracted_data
-                    response_data['message'] = "File & Identity Created successfully"
-
-                    return Response(response_data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
