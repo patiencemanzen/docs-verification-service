@@ -25,7 +25,7 @@ from datetime import timedelta
 logger = logging.getLogger(__name__)
 import redis # type: ignore
 
-redis_conn = redis.Redis(host='redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com', port=12896, password='ONHQluN0dYKijm2V9T1OiLG48ZqSdIXH')
+redis_conn = redis.Redis()
 q = Queue(connection=redis_conn)
 
 @api_view(['GET'])
