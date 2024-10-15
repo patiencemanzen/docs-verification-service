@@ -207,3 +207,10 @@ CELERY_ACCEPT_CONTENT = env.list('CELERY_ACCEPT_CONTENT', default=['json'])
 # Redis result expiry time (TTL)
 CELERY_RESULT_EXPIRES = env('CELERY_RESULT_EXPIRES', default=3600)
 
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 3600,  # 1 hour
+    'socket_timeout': 60,
+    'socket_connect_timeout': 60,
+    'retry_on_timeout': True,
+}
+

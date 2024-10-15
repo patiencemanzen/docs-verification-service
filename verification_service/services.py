@@ -1,18 +1,24 @@
 import google.generativeai as genai # type: ignore
-import pytesseract
+import pytesseract # type: ignore
 import logging
-import fitz
+import fitz # type: ignore
 
 from google.generativeai.types import HarmCategory, HarmBlockThreshold # type: ignore
-from googleapiclient.errors import HttpError
-from PIL import Image
-from docx import Document
-import requests
+from googleapiclient.errors import HttpError # type: ignore
+from PIL import Image # type: ignore
+from docx import Document # type: ignore
+import requests # type: ignore
+import environ # type: ignore
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False),
+)
 
 logger = logging.getLogger(__name__)
-# defaultCallbackURL = "http://127.0.0.1:8000/api/v2/user/verification/callback"
-defaultCallbackURL = "https://test.murugocloud.com/api/v2/user/verification/callback"
-genai.configure(api_key="AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw")
+defaultCallbackURL = env('CLIENT_CALLBACK_URL')
+
+genai.configure(api_key=env('GEMINI_API_KEY'))
 
 class GenFileDataExtractionService:
     # Initialize the service
