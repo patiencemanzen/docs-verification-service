@@ -1,3 +1,9 @@
-fly.toml
-.git/
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.db
 *.sqlite3
+.env
+/media
+/staticfiles

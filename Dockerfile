@@ -1,21 +1,47 @@
-ARG PYTHON_VERSION=3.9-slim-bullseye
+# official Python image from the Docker Hub
+FROM python:3.9-slim
 
-FROM python:${PYTHON_VERSION}
-
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN mkdir -p /code
+# Set the working directory
+WORKDIR /app
 
-WORKDIR /code
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    pkg-config \
+    libmariadb-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /tmp/requirements.txt
-RUN set -ex && \
-    pip install --upgrade pip && \
-    pip install -r /tmp/requirements.txt && \
-    rm -rf /root/.cache/
-COPY . /code
+# Copy the application code
+COPY . /app
 
-EXPOSE 8000
+# Copy the build script and make it executable
+COPY build.sh /app/build.sh
+RUN chmod +x /app/build.sh
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "gemini_verification_service.wsgi"]
+# Run the build script to install dependencies
+RUN /app/build.sh
+
+# Collect static files
+RUN python /app/manage.py collectstatic --noinput
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Define environment variable
+ENV DEBUG True
+ENV MONGODB_HOST mongodb+srv://hseal419:9XsiEbT5jsISKtcP@cluster0.hofar.mongodb.net/murugo-verification-test?retryWrites=true&w=majority
+ENV CELERY_BROKER_URL redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com
+ENV CELERY_RESULT_BACKEND redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com
+ENV CELERY_TASK_SERIALIZER json
+ENV CELERY_RESULT_SERIALIZER json
+ENV CELERY_ACCEPT_CONTENT json
+ENV CELERY_RESULT_EXPIRES 3600
+ENV GEMINI_API_KEY AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw
+
+# Run the application using honcho
+CMD ["honcho", "start"]

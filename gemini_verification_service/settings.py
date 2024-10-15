@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-import environ
+import environ # type: ignore
 import os
 
 env = environ.Env(
@@ -134,7 +134,7 @@ DATABASES = {
         'NAME': 'murugo-verification',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': env('MONGODB_HOST'),
+            'host': env('MONGODB_HOST', default='mongodb+srv://hseal419:9XsiEbT5jsISKtcP@cluster0.hofar.mongodb.net/murugo-verification-test?retryWrites=true&w=majority'),
         }  
     }
 }
@@ -196,14 +196,14 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Celery settings
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://default:ONHQluN0dYKijm2V9T1OiLG48ZqSdIXH@redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com:12896/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://default:ONHQluN0dYKijm2V9T1OiLG48ZqSdIXH@redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com:12896/0')
 
 # Optional: for automatic task retry and result expiration
-CELERY_TASK_SERIALIZER = env('CELERY_TASK_SERIALIZER')
-CELERY_RESULT_SERIALIZER = env('CELERY_RESULT_SERIALIZER')
-CELERY_ACCEPT_CONTENT = env.list('CELERY_ACCEPT_CONTENT')
+CELERY_TASK_SERIALIZER = env('CELERY_TASK_SERIALIZER', default='json')
+CELERY_RESULT_SERIALIZER = env('CELERY_RESULT_SERIALIZER', default='json')
+CELERY_ACCEPT_CONTENT = env.list('CELERY_ACCEPT_CONTENT', default=['json'])
 
 # Redis result expiry time (TTL)
-CELERY_RESULT_EXPIRES = env('CELERY_RESULT_EXPIRES')
+CELERY_RESULT_EXPIRES = env('CELERY_RESULT_EXPIRES', default=3600)
 
