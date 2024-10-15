@@ -35,13 +35,14 @@ EXPOSE 10000
 # Define environment variable
 ENV DEBUG True
 ENV MONGODB_HOST mongodb+srv://hseal419:9XsiEbT5jsISKtcP@cluster0.hofar.mongodb.net/murugo-verification-test?retryWrites=true&w=majority
-ENV CELERY_BROKER_URL redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com
-ENV CELERY_RESULT_BACKEND redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com
+ENV CELERY_BROKER_URL redis://default:ONHQluN0dYKijm2V9T1OiLG48ZqSdIXH@redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com:12896
+ENV CELERY_RESULT_BACKEND redis://default:ONHQluN0dYKijm2V9T1OiLG48ZqSdIXH@redis-12896.c341.af-south-1-1.ec2.redns.redis-cloud.com:12896
 ENV CELERY_TASK_SERIALIZER json
 ENV CELERY_RESULT_SERIALIZER json
 ENV CELERY_ACCEPT_CONTENT json
 ENV CELERY_RESULT_EXPIRES 3600
 ENV GEMINI_API_KEY AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw
+ENV CLIENT_CALLBACK_URL http://127.0.0.1:8000/api/v2/user/verification/callback
 
 # Run the application using honcho
 CMD ["honcho", "start"]

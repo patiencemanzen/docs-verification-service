@@ -16,9 +16,9 @@ env = environ.Env(
 )
 
 logger = logging.getLogger(__name__)
-defaultCallbackURL = env('CLIENT_CALLBACK_URL')
+defaultCallbackURL = env('CLIENT_CALLBACK_URL', default="https://test.murugocloud.com/api/v2/user/verification/callback")
 
-genai.configure(api_key=env('GEMINI_API_KEY'))
+genai.configure(api_key=env('GEMINI_API_KEY', default="AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw"))
 
 class GenFileDataExtractionService:
     # Initialize the service
