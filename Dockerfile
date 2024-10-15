@@ -30,7 +30,7 @@ RUN /app/build.sh
 RUN python /app/manage.py collectstatic --noinput
 
 # Expose the port the app runs on
-EXPOSE 10000
+EXPOSE 8080
 
 # Define environment variable
 ENV DEBUG True

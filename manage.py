@@ -10,7 +10,7 @@ def main():
         "DJANGO_SETTINGS_MODULE", "gemini_verification_service.settings"
     )
     try:
-        from django.core.management import execute_from_command_line
+        from django.core.management import execute_from_command_line # type: ignore
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "

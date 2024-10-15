@@ -9,7 +9,7 @@ services:
     networks:
       - app-network
     ports:
-      - "10000:10000"
+      - "8080:8080"
     depends_on:
       - redis
     env_file:
