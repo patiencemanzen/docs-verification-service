@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # The web service
   web:
     build: .
     volumes:
@@ -15,8 +16,9 @@ services:
     env_file:
       - .env
 
+  # The redis service
   redis:
-    image: redis:6.0-alpine
+    image: redis:latest
     ports:
       - "6379:6379"
     networks:

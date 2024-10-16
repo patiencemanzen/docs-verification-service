@@ -35,8 +35,8 @@ EXPOSE 8080
 # Define environment variable
 ENV DEBUG True
 ENV MONGODB_HOST mongodb+srv://hseal419:9XsiEbT5jsISKtcP@cluster0.hofar.mongodb.net/murugo-verification-test?retryWrites=true&w=majority
-ENV CELERY_BROKER_URL redis://localhost:6379/0
-ENV CELERY_RESULT_BACKEND redis://localhost:6379/0
+ENV CELERY_BROKER_URL redis://redis:6379/0
+ENV CELERY_RESULT_BACKEND redis://redis:6379/0
 ENV CELERY_TASK_SERIALIZER json
 ENV CELERY_RESULT_SERIALIZER json
 ENV CELERY_ACCEPT_CONTENT json
