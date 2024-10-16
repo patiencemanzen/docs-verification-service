@@ -2,6 +2,7 @@ from django.db import models # type: ignore
 from datetime import datetime
 import os
 import hashlib
+import uuid
 
 DEFAULT_USER_ID = 1
 
@@ -29,16 +30,7 @@ class UploadedFile(models.Model):
     
     def save(self, *args, **kwargs):
         if self.file:
-            self.file_hash = self.calculate_file_hash()
+            self.file_hash = uuid.uuid4
 
         super().save(*args, **kwargs)
-
-    def calculate_file_hash(self):
-        # Generate a hash of the file content
-        file_hash = hashlib.sha256()
-
-        for chunk in self.file.chunks():
-            file_hash.update(chunk)
-            
-        return file_hash.hexdigest()
     

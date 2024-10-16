@@ -6,11 +6,10 @@ from .models import UploadedFile
 def extract_data_task(file_id, submitted_data, murugo_user_id):
     try:
         uploaded_file = UploadedFile.objects.get(id=file_id)
-        print("Extracting data from file...")
-
+        initsession = DataExtractionService.initChatSession() 
         extracted_data = DataExtractionService.handleFileDataExtraction(uploaded_file, submitted_data)
         sendCallback = DataExtractionService.send_callback_to_custom_api(murugo_user_id, extracted_data)
+        
         print(f"Callback response: {sendCallback}")
     except Exception as e:
-        # Handle error
         print(f"Error during data extraction: {e}")

@@ -8,9 +8,6 @@ class VerificationServiceConfig(AppConfig):
     name = "verification_service"
 
     def ready(self):
-        from .services import DataExtractionService
-        DataExtractionService.initChatSession()
-
         # Ensure this runs only once
         if os.environ.get('RUN_MAIN') == 'true' or 'runserver' not in sys.argv:
             return

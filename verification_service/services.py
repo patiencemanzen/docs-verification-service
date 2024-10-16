@@ -100,27 +100,27 @@ class GenFileDataExtractionService:
     def genAiPrompt(self, extracted_data="", personal_key_information="\\n1. Full names\\n2. Date of birth\\n3. Address\\n4. document type\\n", company_key_information="\\n1. Date of issuance\\n2. company code\\n3. company name\\n4. registration date\\n5. owner details or Any associated identification numbers (e.g., national ID, passport number, TIN number, etc.)", submitted_data="\\n1. firstname: Manirabona \\n2. secondname: Patience \\n\n3.email: hseal419@gmail.com\\n4.personalid: \\n5.address: kigali, rwanda\\n6. city: kigali\\n7. Dob: 28/04/2002\\n8.countryCode: +250\\n9. Country: rwanda\\n10.phoneNumber: 0780289432\\n"):
         """Generates a prompt for the model to use.
 
-        This implementation uses the file's URI as the prompt text.
+            This implementation uses the file's URI as the prompt text.
         """
 
         return (
             f"You are tasked with extracting key information from the following text that have been extracted from document: {extracted_data}\n"
             f"Please extract and provide at least the following information: {personal_key_information}.\n"
-            f"For the personal identification, please provide: {company_key_information}.\n\n"
+            f"For the company identification, please provide: {company_key_information}.\n\n"
             "Format the extracted information in JSON. Use lowercase keys with underscores instead of spaces. "
             "If any specified fields are missing, indicate them as nullable. Include any relevant metadata under the 'metadata' key.\n\n"
             f"Here is the submitted data: {submitted_data}\n\n"
 
             "Please validate the submitted data against the extracted data. Include the following keys in the JSON output:\n"
-            "- 'submitted': indicating if the submitted data matches.\n"
-            "- 'document': indicating if the extracted document data is correct.\n"
-            "- 'is_match': true or false.\n"
-            "- 'valid': true or false, indicating if the provided text and submitted data are authentic.\n"
-            "- 'face_matches': true or false, indicating if a face image is provided and matches the reference image.\n"
-            "- 'document_type': (e.g., personal ID, company registration, etc.)\n\n"
+            "- 'document_type': (e.g., personal ID, company registration, etc.)\n"
+            "- 'extracted_data': indicating all extracted data from text and formated.\n"
+            "- 'submitted_data': indicating all submitted data.\n"
+            "- 'validatios': combine both extracted_data and submitted_data but validate matches, and it should be like key pair {'firstname': 'john', 'lastname': 'doe', 'matched': true} \n"
+            "- 'is_match': indicating & check if overall both submitted data and extracted data matches.\n"
 
             "Processing Steps:\n"
-            "- Extract all structured and unstructured data, formatting them in JSON to ensure each extracted data matches the submitted data.\n"
+            "- Extract all structured and unstructured data.\n"
+            "- Formatting them in consistency JSON to ensure each extracted data matches the submitted data."
             "- Check for mismatches between the submitted data and provided text details, noting any discrepancies.\n"
         )
 
@@ -152,11 +152,12 @@ class GenFileDataExtractionService:
         )
 
         # Send a message to the chat session to continue processing
-        chat_response = model_session.send_message("Please extract all relevant details from this, validate the submitted data and verify the records if applicable.")
+        chat_response = model_session.send_message("Please extract all relevant details from this text, validate the submitted data and verify the records if applicable.")
         return chat_response.text
 
     def extract_text_from_files(self, file_paths):
         combined_text = ""
+
         for file_path in file_paths:
             if file_path.endswith('.pdf'):
                 combined_text += self.extract_text_from_pdf(file_path) + "\n"
@@ -171,9 +172,8 @@ class GenFileDataExtractionService:
     # Function to extract text from an image
     def extract_text_from_image(self, image_path):
         try:
-            # Load the image
             image = Image.open(image_path)
-            # Use Pytesseract to do OCR on the image
+            # Use Pytesseract  do OCR (Optical Character Recognition) on the image
             text = pytesseract.image_to_string(image)
             return text
         except Exception as e:
