@@ -58,12 +58,17 @@ class FileUploadView(APIView):
                 existing_file = UploadedFile.objects.filter(file_hash=file_hash).first()
                 
                 if existing_file:
-                    serializer = UploadedFileSerializer(existing_file, context={'request': request})
+                    serializer = UploadedFileSerializer(existing_file, data=request.data, partial=True, context={'request': request})
+
+                    if serializer.is_valid():
+                        serializer.save()
                     
-                    # Queue the data extraction task
-                    extract_data_task.delay(existing_file.id, {'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']}, murugo_user_id=form.cleaned_data['murugo_user_id'])
+                        # Queue the data extraction task
+                        extract_data_task.delay(existing_file.id, {'firstname': form.cleaned_data['firstname'], 'secondname': form.cleaned_data['secondname'], 'email': form.cleaned_data['email'], 'personalid': form.cleaned_data['personalid'], 'address': form.cleaned_data['address'], 'city': form.cleaned_data['city'], 'dob': form.cleaned_data['dob'], 'countryCode': form.cleaned_data['countryCode'], 'country': form.cleaned_data['country'], 'phoneNumber': form.cleaned_data['phoneNumber']}, murugo_user_id=form.cleaned_data['murugo_user_id'])
                         
-                    return Response({ "message": "Data processing started"}, status=status.HTTP_200_OK)
+                        return Response({ "message": "Data processing started"}, status=status.HTTP_200_OK)
+                    else:
+                        return Response({ "message": "Unable to Update Data"}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # File does not exist, proceed to save the new file
                 file_serializer = UploadedFileSerializer(data=request.data, context={'request': request})

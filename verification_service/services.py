@@ -220,6 +220,7 @@ class GenFileDataExtractionService:
             f"\\n10. phoneNumber: {data['phoneNumber']}\\n"
         )
     
+    # Handle the data extraction process
     def handleFileDataExtraction(self, uploaded_file, submitted_data):
         try:
             # Extract data from the uploaded file
@@ -245,6 +246,7 @@ class GenFileDataExtractionService:
                 logger.error(f"Failed to upload file: {e}")
                 raise
 
+    # Send the extracted data to the custom API
     def send_callback_to_custom_api(self, murugo_user_id, extracted_data): 
         # Convert extracted_data to a list if it's a set
         if isinstance(extracted_data, set):
