@@ -20,17 +20,10 @@ def upload_image_file(instance, filename):
     
 class UploadedFile(models.Model):
     file = models.FileField(upload_to=upload_id_file)
-    file_hash = models.CharField(max_length=64, unique=True, blank=True, null=True)
     image_file = models.FileField(upload_to=upload_image_file)
     extracted_data = models.TextField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"File {self.id} uploaded at {self.uploaded_at}"
-    
-    def save(self, *args, **kwargs):
-        if self.file:
-            self.file_hash = uuid.uuid4
-
-        super().save(*args, **kwargs)
     

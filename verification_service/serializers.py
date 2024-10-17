@@ -26,13 +26,4 @@ class UploadedFileSerializer(serializers.ModelSerializer):
             return f"{settings.MEDIA_URL}{obj.file.url}"
         else:
             return None
-    
-    def create(self, validated_data):
-        file_hash = validated_data.get('file_hash')
-        existing_file = UploadedFile.objects.filter(file_hash=file_hash).first()
-        
-        if existing_file:
-            return existing_file
-        else:
-            return super().create(validated_data)
 

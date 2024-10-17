@@ -42,7 +42,7 @@ ENV CELERY_RESULT_SERIALIZER json
 ENV CELERY_ACCEPT_CONTENT json
 ENV CELERY_RESULT_EXPIRES 3600
 ENV GEMINI_API_KEY AIzaSyBfOk5t2RSgj88i91zXQLLLrgqN5vh05gw
-ENV CLIENT_CALLBACK_URL https://test.murugocloud.com/api/v2/user/verification/callback
+ENV CLIENT_CALLBACK_URL http://127.0.0.1:8000/api/v2/user/verification/callback
 
 # Run the application using honcho
 CMD ["honcho", "start"]
